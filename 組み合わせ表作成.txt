@@ -1,0 +1,83 @@
+Sub CreateTestPatternsAndExportText()
+    Dim sourceSheet As Worksheet
+    Dim destinationSheet As Worksheet
+    Dim testItemsRange As Range
+    Dim testItemsArray As Variant
+    Dim rowCount As Long
+    Dim colCount As Long
+    Dim rowIndex As Long
+    Dim colIndex As Long
+    Dim binaryPattern As String
+    Dim inputValuesB As Range
+    Dim inputValuesC As Range
+    Dim outputText As String
+    Dim patternIndex As Long
+
+    ' テスト項目とテスト入力値が記載されたシートを指定
+    Set sourceSheet = Worksheets("Sheet1") ' シート名を適切なものに変更
+    ' テストパターンを出力するシートを追加
+    Set destinationSheet = Sheets.Add
+    destinationSheet.Name = "TestPatterns" ' 新しいシートの名前を適切なものに変更
+
+    ' テスト項目が記載されたセルの範囲を取得
+    Set testItemsRange = sourceSheet.Range("A1:A" & sourceSheet.Cells(sourceSheet.Rows.Count, 1).End(xlUp).Row)
+    ' テスト項目を配列に変換
+    testItemsArray = Application.WorksheetFunction.Transpose(testItemsRange.Value)
+
+    ' テスト入力値が記載されたセルの範囲を取得
+    Set inputValuesB = sourceSheet.Range("B1:B" & sourceSheet.Cells(sourceSheet.Rows.Count, 2).End(xlUp).Row)
+    Set inputValuesC = sourceSheet.Range("C1:C" & sourceSheet.Cells(sourceSheet.Rows.Count, 3).End(xlUp).Row)
+
+    ' 列数と行数を計算
+    rowCount = 2 ^ UBound(testItemsArray)
+    colCount = UBound(testItemsArray) + 2 ' 2つ追加する（B列とC列）
+
+    ' ヘッダーを出力
+    destinationSheet.Cells(1, 1).Value = "Test Pattern"
+    For colIndex = 1 To colCount - 2
+        destinationSheet.Cells(1, colIndex + 1).Value = testItemsArray(colIndex - 1)
+    Next colIndex
+    destinationSheet.Cells(1, colCount - 1).Value = "Input Values B"
+    destinationSheet.Cells(1, colCount).Value = "Input Values C"
+
+    ' テストパターンを生成して出力
+    For rowIndex = 1 To rowCount
+        binaryPattern = WorksheetFunction.Dec2Bin(rowIndex - 1, UBound(testItemsArray))
+        destinationSheet.Cells(rowIndex + 1, 1).Value = "Pattern " & rowIndex
+        For colIndex = 1 To UBound(testItemsArray)
+            destinationSheet.Cells(rowIndex + 1, colIndex + 1).Value = Mid(binaryPattern, colIndex, 1)
+        Next colIndex
+        ' テスト入力値を対応する列に出力
+        destinationSheet.Cells(rowIndex + 1, colCount - 1).Value = inputValuesB.Cells(rowIndex, 1).Value
+        destinationSheet.Cells(rowIndex + 1, colCount).Value = inputValuesC.Cells(rowIndex, 1).Value
+    Next rowIndex
+
+    ' テキストに変換
+    outputText = ConvertSheetToText(destinationSheet)
+
+    ' メッセージボックスに表示
+    MsgBox outputText
+End Sub
+
+Function ConvertSheetToText(ws As Worksheet) As String
+    ' ワークシートの内容をテキストに変換する
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim rowIndex As Long
+    Dim colIndex As Long
+    Dim cellValue As Variant
+    Dim outputText As String
+
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    For rowIndex = 1 To lastRow
+        For colIndex = 1 To lastCol
+            cellValue = ws.Cells(rowIndex, colIndex).Value
+            outputText = outputText & cellValue & vbTab
+        Next colIndex
+        outputText = outputText & vbCrLf
+    Next rowIndex
+
+    ConvertSheetToText = outputText
+End Function

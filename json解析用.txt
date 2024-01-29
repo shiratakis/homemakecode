@@ -1,0 +1,60 @@
+Sub ParseAndExportJsonToExcel()
+    Dim filePath As String
+    Dim jsonContent As Object
+    Dim ws As Worksheet
+
+    ' JSON ファイルのパスを指定
+    filePath = "ここにJSONファイルのフルパスを入力"
+
+    ' JSON ファイルを読み込んでオブジェクトに変換
+    Set jsonContent = LoadJsonFile(filePath)
+
+    ' 新しいワークシートを作成
+    Set ws = Worksheets.Add
+
+    ' JSON データを Excel に展開
+    ParseJsonContent jsonContent, ws
+
+    MsgBox "JSON ファイルの内容を Excel に展開しました。"
+End Sub
+
+Sub ParseJsonContent(jsonContent As Object, ws As Worksheet, Optional parentKey As String = "")
+    Dim key As Variant
+    Dim value As Variant
+    Dim subContent As Object
+
+    For Each key In jsonContent
+        If parentKey <> "" Then
+            key = parentKey & "." & key
+        End If
+
+        ws.Cells(ws.Rows.Count, 1).End(xlUp).Offset(1, 0).Value = key
+
+        If TypeName(jsonContent(key)) = "Collection" Then
+            ' サブオブジェクトがある場合は再帰的に処理
+            Set subContent = jsonContent(key)
+            ParseJsonContent subContent, ws, key
+        Else
+            ' キーに対応する値を取得して Excel シートに書き込み
+            value = jsonContent(key)
+            ws.Cells(ws.Rows.Count, 2).End(xlUp).Offset(1, 0).Value = value
+        End If
+    Next key
+End Sub
+
+Function LoadJsonFile(filePath As String) As Object
+    ' JSON ファイルを読み込んでオブジェクトにパース
+    Dim jsonContent As Object
+    Set jsonContent = JsonConverter.ParseJson(ReadFile(filePath))
+    Set LoadJsonFile = jsonContent
+End Function
+
+Function ReadFile(filePath As String) As String
+    ' ファイルを読み込む
+    Dim fileNumber As Integer
+    fileNumber = FreeFile
+    Open filePath For Input As fileNumber
+    ReadFile = Input$(LOF(fileNumber), fileNumber)
+    Close fileNumber
+End Function
+'このコードでは、ParseJsonContent という再帰的なサブプロシージャが新しいワークシートに JSON データを展開します。各キーはExcelの列Aに、それに対応する値は列Bに配置されます。サブオブジェクトがある場合は再帰的に処理し、階層構造を反映します。

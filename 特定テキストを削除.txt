@@ -1,0 +1,69 @@
+Sub DeleteLinesWithCCCInTextFilesRecursive()
+    Dim folderPath As String
+    Dim fileName As String
+    Dim fileContent As String
+    Dim lines() As String
+    Dim i As Long
+    Dim j As Long
+    Dim subFolderPath As String
+
+    ' フォルダーパスの指定
+    folderPath = ThisWorkbook.Path ' 現在のExcelファイルのフォルダパスを取得
+
+    ' フォルダ内のテキストファイルを再帰的に処理
+    ProcessFilesInFolder folderPath
+
+    MsgBox "処理が完了しました。"
+End Sub
+
+Sub ProcessFilesInFolder(folderPath As String)
+    Dim fileName As String
+    Dim fileContent As String
+    Dim lines() As String
+    Dim i As Long
+    Dim j As Long
+
+    ' 対象フォルダ内のテキストファイルを取得
+    fileName = Dir(folderPath & "\*.txt")
+
+    Do While fileName <> ""
+        ' ファイルの読み込み
+        Open folderPath & "\" & fileName For Input As #1
+        fileContent = Input$(LOF(1), #1)
+        Close #1
+
+        ' ファイル内容を行ごとに分割
+        lines = Split(fileContent, vbCrLf)
+
+        ' "ccc"を含む行を削除
+        For i = UBound(lines) To LBound(lines) Step -1
+            If InStr(1, lines(i), "ccc", vbTextCompare) > 0 Then
+                ' "ccc"を含む行の削除
+                For j = i To UBound(lines) - 1
+                    lines(j) = lines(j + 1)
+                Next j
+                ' 配列のサイズを調整
+                ReDim Preserve lines(LBound(lines) To UBound(lines) - 1)
+            End If
+        Next i
+
+        ' ファイルの書き込み（上書き）
+        Open folderPath & "\" & fileName For Output As #1
+        Print #1, Join(lines, vbCrLf)
+        Close #1
+
+        ' 次のファイルを処理
+        fileName = Dir
+    Loop
+
+    ' サブフォルダ内のテキストファイルを再帰的に処理
+    subFolderPath = Dir(folderPath & "\", vbDirectory)
+    Do While subFolderPath <> ""
+        If subFolderPath <> "." And subFolderPath <> ".." Then
+            If (GetAttr(folderPath & "\" & subFolderPath) And vbDirectory) = vbDirectory Then
+                ProcessFilesInFolder folderPath & "\" & subFolderPath
+            End If
+        End If
+        subFolderPath = Dir
+    Loop
+End Sub

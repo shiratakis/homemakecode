@@ -1,0 +1,28 @@
+// After Effects ExtendScript
+
+// プロジェクト内のすべてのコンポジション情報を取得
+var project = app.project;
+for (var i = 1; i <= project.rootFolder.items.length; i++) {
+    var item = project.rootFolder.items[i];
+    if (item instanceof CompItem) {
+        $.writeln("Composition " + i + ": " + item.name);
+
+        // visibleプロパティを出力
+        $.writeln("   Visible: " + layer.enabled);
+
+        // コンポジションのプロパティを出力
+        $.writeln("   Width: " + item.width);
+        $.writeln("   Height: " + item.height);
+        $.writeln("   Duration: " + item.duration);
+        $.writeln("   Frame Rate: " + item.frameRate);
+        
+        // コンポジション内のレイヤー情報を出力
+        var layers = item.layers;
+        for (var j = 1; j <= layers.length; j++) {
+            var layer = layers[j];
+            $.writeln("      Layer " + j + ": " + layer.name);
+        }
+
+        $.writeln(""); // 区切りの空行
+    }
+}

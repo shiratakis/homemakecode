@@ -1,0 +1,93 @@
+Sub DeleteLinesWithCCCInJsonFilesRecursive()
+    Dim folderPath As String
+
+    ' フォルダーパスの指定
+    folderPath = ThisWorkbook.Path ' 現在のExcelファイルのフォルダパスを取得
+
+    ' フォルダ内のJSONファイルを再帰的に処理
+    ProcessJsonFilesInFolder folderPath
+
+    MsgBox "処理が完了しました。"
+End Sub
+
+Sub ProcessJsonFilesInFolder(folderPath As String)
+    Dim fileName As String
+    Dim jsonContent As Object
+
+    ' 対象フォルダ内のJSONファイルを取得
+    fileName = Dir(folderPath & "\*.json")
+
+    Do While fileName <> ""
+        ' JSONファイルの読み込み
+        Set jsonContent = LoadJsonFile(folderPath & "\" & fileName)
+
+        ' "ccc"を含む行を削除
+        DeleteLinesWithCCC jsonContent
+
+        ' JSONファイルの書き込み（上書き）
+        SaveJsonFile folderPath & "\" & fileName, jsonContent
+
+        ' 次のファイルを処理
+        fileName = Dir
+    Loop
+
+    ' サブフォルダ内のJSONファイルを再帰的に処理
+    Dim subFolderPath As String
+    subFolderPath = Dir(folderPath & "\", vbDirectory)
+    Do While subFolderPath <> ""
+        If subFolderPath <> "." And subFolderPath <> ".." Then
+            If (GetAttr(folderPath & "\" & subFolderPath) And vbDirectory) = vbDirectory Then
+                ProcessJsonFilesInFolder folderPath & "\" & subFolderPath
+            End If
+        End If
+        subFolderPath = Dir
+    Loop
+End Sub
+
+Sub DeleteLinesWithCCC(ByRef jsonContent As Object)
+    ' ここに "ccc" を含む行を削除する具体的なコードを記述
+    ' JSON ファイルの構造やデータに応じて適切な処理を実装
+    ' 以下は、JSON オブジェクト内の文字列プロパティに対して "ccc" を含む場合にそのプロパティを削除する例
+
+    Dim key As Variant
+
+    For Each key In jsonContent
+        If TypeName(jsonContent(key)) = "String" Then
+            If InStr(1, jsonContent(key), "ccc", vbTextCompare) > 0 Then
+                ' "ccc" を含む行の削除
+                jsonContent.Remove key
+                Exit For ' 1行につき最初の "ccc" が見つかったらループを抜ける
+            End If
+        End If
+    Next key
+End Sub
+
+Function LoadJsonFile(filePath As String) As Object
+    ' JSON ファイルを読み込んでオブジェクトにパース
+    Dim jsonContent As Object
+    Set jsonContent = JsonConverter.ParseJson(ReadFile(filePath))
+    Set LoadJsonFile = jsonContent
+End Function
+
+Sub SaveJsonFile(filePath As String, jsonContent As Object)
+    ' JSON オブジェクトを文字列に変換してファイルに書き込む
+    WriteFile filePath, JsonConverter.ConvertToJson(jsonContent, Whitespace:=2)
+End Sub
+
+Function ReadFile(filePath As String) As String
+    ' ファイルを読み込む
+    Dim fileNumber As Integer
+    fileNumber = FreeFile
+    Open filePath For Input As fileNumber
+    ReadFile = Input$(LOF(fileNumber), fileNumber)
+    Close fileNumber
+End Function
+
+Sub WriteFile(filePath As String, content As String)
+    ' ファイルに書き込む
+    Dim fileNumber As Integer
+    fileNumber = FreeFile
+    Open filePath For Output As fileNumber
+    Print #fileNumber, content;
+    Close fileNumber
+End Sub

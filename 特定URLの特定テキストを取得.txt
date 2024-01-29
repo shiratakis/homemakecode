@@ -1,0 +1,50 @@
+Sub AccessAndExtractText()
+    Dim ieApp As Object
+    Dim htmlDoc As Object
+    Dim inputElement As Object
+    Dim targetURL As String
+    Dim targetTextboxID As String
+    Dim extractedText As String
+
+    ' 対象のURLとテキストボックスのIDを指定
+    targetURL = "https://example.com" ' ここに対象のURLを入力
+    targetTextboxID = "txtInput" ' ここに対象のテキストボックスのIDを入力
+
+    ' Internet Explorerを作成
+    Set ieApp = CreateObject("InternetExplorer.Application")
+    ieApp.Visible = True ' IEを表示するかどうか
+
+    ' URLにアクセス
+    ieApp.Navigate targetURL
+
+    ' ページが読み込まれるまで待機
+    Do While ieApp.Busy Or ieApp.ReadyState <> 4
+        Application.Wait DateAdd("s", 1, Now)
+    Loop
+
+    ' HTML Documentを取得
+    Set htmlDoc = ieApp.Document
+
+    ' テキストボックスの入力文字を抽出
+    Set inputElement = htmlDoc.getElementById(targetTextboxID)
+    If Not inputElement Is Nothing Then
+        extractedText = inputElement.Value
+        MsgBox "抽出されたテキスト: " & extractedText
+    Else
+        MsgBox "テキストボックスが見つかりませんでした。"
+    End If
+
+    ' Internet Explorerを閉じる
+    ieApp.Quit
+    Set ieApp = Nothing
+End Sub
+
+この例では、InternetExplorerオブジェクトを使用して指定されたURLにアクセスし、指定されたテキストボックスの入力文字を抽出します。変数targetURLに対象のURLを、targetTextboxIDに対象のテキストボックスのIDを設定してください。このマクロを実行すると、IEが表示され、対象のURLにアクセスしてから、指定したテキストボックスの内容がメッセージボックスに表示されます。
+
+Internet Explorerでも開発者ツールを使用して要素のIDを調べることができます。以下は、Internet Explorerでの手順です。
+
+Internet Explorerを開き、対象のWebページに移動します。
+ページ上で右クリックし、「要素の検査 (Inspect Element)」または「要素の検査 (Inspect)」を選択します。このアクションにより、開発者ツールが開きます。
+開発者ツールの左上にある「検出 (Select element by click)」ボタンをクリックします。
+ページ上の対象のテキストボックスや要素をクリックします。
+要素が選択されると、開発者ツールの "Elements" タブにその要素が表示され、右側にはその要素の詳細が表示されます。この中で、idと書かれた欄に対象要素のIDが表示されます。
