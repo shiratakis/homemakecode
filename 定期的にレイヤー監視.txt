@@ -1,0 +1,41 @@
+// After Effects ExtendScript
+
+var previousLayerNames = {};
+
+// ログを出力する関数
+function logMessage(message) {
+    $.writeln(message);
+}
+
+// メイン処理
+function main() {
+    var activeComp = app.project.activeItem;
+
+    if (activeComp instanceof CompItem) {
+        logMessage("Active Composition: " + activeComp.name);
+
+        // コンポジション内のすべてのレイヤーを監視
+        for (var i = 1; i <= activeComp.layers.length; i++) {
+            var layer = activeComp.layers[i];
+
+            // レイヤーがアクティブでなく、前回と異なる名前だった場合
+            if (!layer.active && layer.name !== previousLayerNames[layer.index]) {
+                logMessage("Layer " + i + " in composition '" + activeComp.name + "' has changed:");
+                logMessage("   Previous Name: " + previousLayerNames[layer.index]);
+                logMessage("   New Name: " + layer.name);
+                logMessage("   Type: " + layer.sourceType);
+                logMessage("");
+                
+                // 前回のレイヤー名を更新
+                previousLayerNames[layer.index] = layer.name;
+            }
+        }
+    } else {
+        logMessage("No active composition.");
+    }
+}
+
+// タイマーを使用して一定間隔でメイン処理を実行
+var timerInterval = 1000; // ミリ秒単位での間隔
+var timer = app.timerTask("main()", timerInterval, true);
+timer.enabled = true;
