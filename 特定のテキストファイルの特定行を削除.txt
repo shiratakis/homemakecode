@@ -1,0 +1,46 @@
+Sub FindAndWriteToCell_UTF8()
+
+    ' ファイルのパス（適切なパスに置き換えてください）
+    Dim filePath As String
+    filePath = "C:\Path\To\Your\File.txt"
+
+    ' 検索する文字列
+    Dim searchString As String
+    searchString = "特定の文字列"
+
+    ' Excelのセル（適切なセルアドレスに置き換えてください）
+    Dim targetCell As Range
+    Set targetCell = Sheets("Sheet1").Range("A1")
+
+    ' ADODB.Streamオブジェクトを作成
+    Dim stream As Object
+    Set stream = CreateObject("ADODB.Stream")
+
+    ' UTF-8でエンコードされたテキストファイルを開く
+    stream.Open
+    stream.Type = 2 ' テキスト
+    stream.Charset = "utf-8"
+    stream.LoadFromFile filePath
+
+    ' ファイルの内容を文字列として取得
+    Dim fileContent As String
+    fileContent = stream.ReadText
+
+    ' ファイルを閉じる
+    stream.Close
+
+    ' ファイルの内容を行ごとに分割
+    Dim lines() As String
+    lines = Split(fileContent, vbCrLf)
+
+    ' 特定の文字列を含む行を検索してセルに記載
+    Dim i As Integer
+    For i = LBound(lines) To UBound(lines)
+        If InStr(1, lines(i), searchString, vbTextCompare) > 0 Then
+            targetCell.Value = lines(i)
+            MsgBox "検索が完了しました。", vbInformation
+            Exit For
+        End If
+    Next i
+
+End Sub
